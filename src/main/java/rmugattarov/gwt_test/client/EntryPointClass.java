@@ -2,6 +2,8 @@ package rmugattarov.gwt_test.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
@@ -10,8 +12,8 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import rmugattarov.gwt_test.server.MyRemoteService;
-import rmugattarov.gwt_test.server.MyRemoteServiceAsync;
+import rmugattarov.gwt_test.shared.MyRemoteService;
+import rmugattarov.gwt_test.shared.MyRemoteServiceAsync;
 
 /**
  * Created by rmugattarov on 21.01.2016.
@@ -36,12 +38,21 @@ public class EntryPointClass implements EntryPoint {
                         label.setText(s);
                     }
                 });
+
             }
         });
 
         VerticalPanel verticalPanel = new VerticalPanel();
+
         verticalPanel.add(label);
         verticalPanel.add(button);
+        verticalPanel.addHandler(new ChangeHandler() {
+            public void onChange(ChangeEvent changeEvent) {
+                Window.alert("verticalPanel onChange");
+            }
+        }, ChangeEvent.getType());
         RootPanel.get().add(verticalPanel);
+        button.fireEvent(new ChangeEvent() {
+        });
     }
 }

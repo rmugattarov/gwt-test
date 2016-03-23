@@ -1,6 +1,7 @@
 package rmugattarov.gwt_test.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import rmugattarov.gwt_test.shared.MyRemoteService;
 
 import javax.servlet.annotation.WebServlet;
 

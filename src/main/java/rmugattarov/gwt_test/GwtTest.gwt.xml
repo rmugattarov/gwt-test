@@ -2,6 +2,8 @@
 <module rename-to="GwtTest">
     <inherits name='com.google.gwt.user.User'/>
     <inherits name='com.google.gwt.user.theme.standard.Standard'/>
-    <entry-point class='rmugattarov.gwt_test.client.EntryPointClass'/>
     <set-property name="user.agent" value="safari"/>
+    <source path='client'/>
+    <source path='shared'/>
+    <entry-point class='rmugattarov.gwt_test.client.EntryPointClass'/>
 </module>
