@@ -4,15 +4,17 @@ import com.google.common.base.Strings;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.ui.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Created by rmugattarov on 19.04.2016.
  */
 public class SuggestBoxWidget extends Composite {
+
+    private final List<String> defaultValues;
+    private final List<String> lowerCaseDefaultValues;
+    private final TextBox textBox = new TextBox();
+    private final MyPopupPanel popupPanel = new MyPopupPanel();
 
     private static class MyPopupPanel extends PopupPanel {
         @Override
@@ -24,16 +26,15 @@ public class SuggestBoxWidget extends Composite {
     }
 
     public SuggestBoxWidget(final Collection<String> inputDefaultValues) {
-        final List<String> defaultValues = filterInputValues(inputDefaultValues);
+        defaultValues = filterInputValues(inputDefaultValues);
+        lowerCaseDefaultValues = getLowerCaseDefaultValues();
         final VerticalPanel verticalPanel = new VerticalPanel();
-        final TextBox textBox = new TextBox();
-        final MyPopupPanel popupPanel = new MyPopupPanel();
 
         textBox.addFocusHandler(new FocusHandler() {
             @Override
             public void onFocus(FocusEvent focusEvent) {
                 if (Strings.isNullOrEmpty(textBox.getText())) {
-                    showDefaultSuggestions(textBox, defaultValues, popupPanel);
+                    showDefaultSuggestions();
                 }
             }
         });
@@ -50,7 +51,9 @@ public class SuggestBoxWidget extends Composite {
             public void onKeyUp(KeyUpEvent keyUpEvent) {
                 popupPanel.hide();
                 if (Strings.isNullOrEmpty(textBox.getText())) {
-                    showDefaultSuggestions(textBox, defaultValues, popupPanel);
+                    showDefaultSuggestions();
+                } else {
+                    showSuggestions();
                 }
             }
         });
@@ -58,12 +61,53 @@ public class SuggestBoxWidget extends Composite {
         initWidget(verticalPanel);
     }
 
-    private void showDefaultSuggestions(TextBox textBox, List<String> defaultValues, MyPopupPanel popupPanel) {
+    private List<String> getLowerCaseDefaultValues() {
+        List<String> result = new ArrayList<String>();
+        for (String defaultValue : defaultValues) {
+            result.add(defaultValue.toLowerCase());
+        }
+        return result;
+    }
+
+    private void showSuggestions() {
+        String userInput = textBox.getText().toLowerCase();
+        List<String> suggestions = new ArrayList<String>();
+        Set<Integer> startsWithIndices = new HashSet<Integer>();
+        for (int i = 0; (suggestions.size() < 10) && (i < lowerCaseDefaultValues.size()); i++) {
+            String lowerCaseDefaultValue = lowerCaseDefaultValues.get(i);
+            if (lowerCaseDefaultValue.startsWith(userInput)) {
+                suggestions.add(defaultValues.get(i));
+                startsWithIndices.add(i);
+            }
+        }
+        for (int i = 0; (suggestions.size() < 10) && (i < lowerCaseDefaultValues.size()); i++) {
+            if (startsWithIndices.contains(i)) {
+                continue;
+            }
+            String lowerCaseDefaultValue = lowerCaseDefaultValues.get(i);
+            if (lowerCaseDefaultValue.contains(userInput)) {
+                suggestions.add(defaultValues.get(i));
+            }
+        }
+        if (suggestions.size() > 0) {
+            VerticalPanel verticalPanel = new VerticalPanel();
+            for (String suggestion : suggestions) {
+                verticalPanel.add(new Label(suggestion));
+            }
+            showPopupPanel(verticalPanel);
+        }
+    }
+
+    private void showDefaultSuggestions() {
         VerticalPanel suggestions = new VerticalPanel();
         for (int i = 0; (i < 10) && (i < defaultValues.size()); i++) {
             suggestions.add(new Label(defaultValues.get(i)));
         }
-        popupPanel.setWidget(suggestions);
+        showPopupPanel(suggestions);
+    }
+
+    private void showPopupPanel(VerticalPanel widget) {
+        popupPanel.setWidget(widget);
         popupPanel.setPopupPosition(textBox.getAbsoluteLeft(), textBox.getAbsoluteTop() + textBox.getOffsetHeight());
         popupPanel.show();
     }
