@@ -23,6 +23,11 @@ public class SuggestBoxWidget extends Composite {
     private String value;
 
     private static class MyPopupPanel extends PopupPanel {
+
+        public MyPopupPanel() {
+            super(true);
+        }
+
         @Override
         public void show() {
             if (getWidget() != null) {
