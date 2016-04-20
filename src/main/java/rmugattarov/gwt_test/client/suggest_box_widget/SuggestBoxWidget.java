@@ -16,6 +16,7 @@ public class SuggestBoxWidget extends Composite {
     private final List<String> lowerCaseDefaultValues;
     private final TextBox textBox = new TextBox();
     private final MyPopupPanel popupPanel = new MyPopupPanel();
+    private String value;
 
     private static class MyPopupPanel extends PopupPanel {
         @Override
@@ -41,7 +42,14 @@ public class SuggestBoxWidget extends Composite {
         textBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent keyUpEvent) {
-                popupPanel.hide();
+                String newValue = textBox.getValue().toLowerCase();
+                int valueIndex = lowerCaseDefaultValues.indexOf(newValue);
+                if (valueIndex > 0) {
+                    value = defaultValues.get(valueIndex);
+                } else {
+                    value = null;
+                }
+                log("value : " + value);
                 showPopupSuggestions();
             }
         });
@@ -58,6 +66,7 @@ public class SuggestBoxWidget extends Composite {
     }
 
     private void showPopupSuggestions() {
+        popupPanel.hide();
         if (Strings.isNullOrEmpty(textBox.getText())) {
             showDefaultSuggestions();
         } else {
@@ -107,7 +116,8 @@ public class SuggestBoxWidget extends Composite {
         label.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
-                textBox.setText(label.getText());
+                value = label.getText();
+                textBox.setText(value);
                 popupPanel.hide();
             }
         });
