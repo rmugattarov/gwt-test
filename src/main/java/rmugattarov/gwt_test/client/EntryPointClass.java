@@ -11,6 +11,6 @@ import java.util.Arrays;
  */
 public class EntryPointClass implements EntryPoint {
     public void onModuleLoad() {
-        RootPanel.get().add(new SuggestBoxWidget(Arrays.asList("123", "234", "345", "456", "567", "678", "789", "890", "901", "012", "098", "987", "876")));
+        RootPanel.get().add(new SuggestBoxWidget(Arrays.asList("123456", "12345", "1234", "123", "234", "345", "456", "567", "678", "789", "890", "901", "012", "098", "987", "876")));
     }
 }

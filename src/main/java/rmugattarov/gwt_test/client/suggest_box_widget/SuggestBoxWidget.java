@@ -33,16 +33,7 @@ public class SuggestBoxWidget extends Composite {
         textBox.addFocusHandler(new FocusHandler() {
             @Override
             public void onFocus(FocusEvent focusEvent) {
-                if (Strings.isNullOrEmpty(textBox.getText())) {
-                    showDefaultSuggestions();
-                }
-            }
-        });
-
-        textBox.addBlurHandler(new BlurHandler() {
-            @Override
-            public void onBlur(BlurEvent blurEvent) {
-                popupPanel.hide();
+                showPopupSuggestions();
             }
         });
 
@@ -50,15 +41,27 @@ public class SuggestBoxWidget extends Composite {
             @Override
             public void onKeyUp(KeyUpEvent keyUpEvent) {
                 popupPanel.hide();
-                if (Strings.isNullOrEmpty(textBox.getText())) {
-                    showDefaultSuggestions();
-                } else {
-                    showSuggestions();
-                }
+                showPopupSuggestions();
             }
         });
+
+        popupPanel.addHandler(new BlurHandler() {
+            @Override
+            public void onBlur(BlurEvent blurEvent) {
+                log("popup blur");
+            }
+        }, BlurEvent.getType());
+
         verticalPanel.add(textBox);
         initWidget(verticalPanel);
+    }
+
+    private void showPopupSuggestions() {
+        if (Strings.isNullOrEmpty(textBox.getText())) {
+            showDefaultSuggestions();
+        } else {
+            showSuggestions();
+        }
     }
 
     private List<String> getLowerCaseDefaultValues() {
@@ -73,14 +76,14 @@ public class SuggestBoxWidget extends Composite {
         String userInput = textBox.getText().toLowerCase();
         List<String> suggestions = new ArrayList<String>();
         Set<Integer> startsWithIndices = new HashSet<Integer>();
-        for (int i = 0; (suggestions.size() < 10) && (i < lowerCaseDefaultValues.size()); i++) {
+        for (int i = 0; i < lowerCaseDefaultValues.size(); i++) {
             String lowerCaseDefaultValue = lowerCaseDefaultValues.get(i);
             if (lowerCaseDefaultValue.startsWith(userInput)) {
                 suggestions.add(defaultValues.get(i));
                 startsWithIndices.add(i);
             }
         }
-        for (int i = 0; (suggestions.size() < 10) && (i < lowerCaseDefaultValues.size()); i++) {
+        for (int i = 0; i < lowerCaseDefaultValues.size(); i++) {
             if (startsWithIndices.contains(i)) {
                 continue;
             }
@@ -92,24 +95,44 @@ public class SuggestBoxWidget extends Composite {
         if (suggestions.size() > 0) {
             VerticalPanel verticalPanel = new VerticalPanel();
             for (String suggestion : suggestions) {
-                verticalPanel.add(new Label(suggestion));
+                verticalPanel.add(createPopupListElement(suggestion));
             }
             showPopupPanel(verticalPanel);
         }
     }
 
+    private Label createPopupListElement(String text) {
+        final Label label = new Label(text);
+        label.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                textBox.setText(label.getText());
+                popupPanel.hide();
+            }
+        });
+        return label;
+    }
+
     private void showDefaultSuggestions() {
         VerticalPanel suggestions = new VerticalPanel();
-        for (int i = 0; (i < 10) && (i < defaultValues.size()); i++) {
-            suggestions.add(new Label(defaultValues.get(i)));
+        for (int i = 0; i < defaultValues.size(); i++) {
+            suggestions.add(createPopupListElement(defaultValues.get(i)));
         }
         showPopupPanel(suggestions);
     }
 
-    private void showPopupPanel(VerticalPanel widget) {
+    private void showPopupPanel(Widget widget) {
         popupPanel.setWidget(widget);
         popupPanel.setPopupPosition(textBox.getAbsoluteLeft(), textBox.getAbsoluteTop() + textBox.getOffsetHeight());
         popupPanel.show();
+        int widgetHeight = widget.getOffsetHeight();
+        if (widgetHeight > 50) {
+            ScrollPanel scrollPanel = new ScrollPanel();
+            scrollPanel.add(widget);
+            scrollPanel.setHeight("200px");
+            scrollPanel.setWidth(textBox.getOffsetWidth() + "px");
+            popupPanel.setWidget(scrollPanel);
+        }
     }
 
     private List<String> filterInputValues(Collection<String> inputDefaultValues) {
