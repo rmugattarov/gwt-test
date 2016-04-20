@@ -2,7 +2,9 @@ package rmugattarov.gwt_test.client.suggest_box_widget;
 
 import com.google.common.base.Strings;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.ui.*;
+import rmugattarov.gwt_test.client.events.SuggestSelectEvent;
 
 import java.util.*;
 
@@ -16,6 +18,8 @@ public class SuggestBoxWidget extends Composite {
     private final List<String> lowerCaseDefaultValues;
     private final TextBox textBox = new TextBox();
     private final MyPopupPanel popupPanel = new MyPopupPanel();
+    private final Button selectButton = new Button("Select");
+    private final SimpleEventBus eventBus;
     private String value;
 
     private static class MyPopupPanel extends PopupPanel {
@@ -27,10 +31,24 @@ public class SuggestBoxWidget extends Composite {
         }
     }
 
-    public SuggestBoxWidget(final Collection<String> inputDefaultValues) {
+    public SuggestBoxWidget(final SimpleEventBus eventBus, final Collection<String> inputDefaultValues) {
+        this.eventBus = eventBus;
         defaultValues = filterInputValues(inputDefaultValues);
         lowerCaseDefaultValues = getLowerCaseDefaultValues();
-        final VerticalPanel verticalPanel = new VerticalPanel();
+        final HorizontalPanel horizontalPanel = new HorizontalPanel();
+
+        eventBus.addHandler(SuggestSelectEvent.TYPE, new SuggestSelectEvent.SuggestSelectEventHandler() {
+            @Override
+            public void onSuggestSelectEvent(SuggestSelectEvent event) {
+                log("SuggestSelectEvent value : " + event.getValue());
+                if (Strings.isNullOrEmpty(event.getValue())) {
+                    selectButton.setEnabled(false);
+                } else {
+                    selectButton.setEnabled(true);
+                }
+            }
+        });
+        selectButton.setEnabled(false);
 
         textBox.addFocusHandler(new FocusHandler() {
             @Override
@@ -49,6 +67,7 @@ public class SuggestBoxWidget extends Composite {
                 } else {
                     value = null;
                 }
+                eventBus.fireEvent(new SuggestSelectEvent(value));
                 log("value : " + value);
                 showPopupSuggestions();
             }
@@ -61,8 +80,9 @@ public class SuggestBoxWidget extends Composite {
             }
         }, BlurEvent.getType());
 
-        verticalPanel.add(textBox);
-        initWidget(verticalPanel);
+        horizontalPanel.add(textBox);
+        horizontalPanel.add(selectButton);
+        initWidget(horizontalPanel);
     }
 
     private void showPopupSuggestions() {
@@ -117,6 +137,8 @@ public class SuggestBoxWidget extends Composite {
             @Override
             public void onClick(ClickEvent clickEvent) {
                 value = label.getText();
+                log("value : " + value);
+                eventBus.fireEvent(new SuggestSelectEvent(value));
                 textBox.setText(value);
                 popupPanel.hide();
             }
