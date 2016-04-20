@@ -11,6 +11,7 @@ import java.util.*;
  */
 public class SuggestBoxWidget extends Composite {
 
+    public static final int SCROLL_PANEL_MAX_VISIBLE_HEIGHT = 200;
     private final List<String> defaultValues;
     private final List<String> lowerCaseDefaultValues;
     private final TextBox textBox = new TextBox();
@@ -126,10 +127,10 @@ public class SuggestBoxWidget extends Composite {
         popupPanel.setPopupPosition(textBox.getAbsoluteLeft(), textBox.getAbsoluteTop() + textBox.getOffsetHeight());
         popupPanel.show();
         int widgetHeight = widget.getOffsetHeight();
-        if (widgetHeight > 50) {
+        if (widgetHeight > SCROLL_PANEL_MAX_VISIBLE_HEIGHT) {
             ScrollPanel scrollPanel = new ScrollPanel();
             scrollPanel.add(widget);
-            scrollPanel.setHeight("200px");
+            scrollPanel.setHeight(SCROLL_PANEL_MAX_VISIBLE_HEIGHT + "px");
             scrollPanel.setWidth(textBox.getOffsetWidth() + "px");
             popupPanel.setWidget(scrollPanel);
         }
